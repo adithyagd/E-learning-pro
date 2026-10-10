@@ -1,0 +1,5 @@
+## Rules
+- Certificates live in `public.certificates` (one per candidate+program); the pending request is created only by a DB trigger when a final attempt passes, and every status change goes through admin-only security-definer RPCs (`approve/reject/rereview/revoke/mark_certificate_issued`) — the client never sets status or eligibility.
+- Certificate PDFs are generated server-side (`features/certificates/certificate-pdf.server.ts`, pdf-lib) into the private `certificates` bucket; ISSUED is set only after the upload succeeds, and downloads use short-lived signed links after an RLS-checked read.
+- Public verification (`/verify/$certificateId`) uses `verify_certificate()`, which returns only ID, name, program, issue date and valid/revoked.
+- Links in emails and certificates use `APP_PUBLIC_URL` via `src/lib/app-url.server.ts`; certificates omit the verify URL when it is unset, and email links fall back to the admin's origin but never to a local-only address — avoids unreachable or guessed links.

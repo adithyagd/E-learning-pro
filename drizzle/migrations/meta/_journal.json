@@ -1,0 +1,111 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791453250395,
+      "tag": "0000_foundation_roles_profiles_activity",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791453957122,
+      "tag": "0001_step2_account_status_profiles",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791455160700,
+      "tag": "0002_step3_candidate_management",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791455835059,
+      "tag": "0003_revoke_definer_execute",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791456109568,
+      "tag": "0004_step4_academy_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791473573558,
+      "tag": "0005_step10_assessment_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791477763526,
+      "tag": "0006_step11_final_assessment",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791478290954,
+      "tag": "0007_final_assessment_block_after_pass",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791523232278,
+      "tag": "0008_step12_certificates",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791527719491,
+      "tag": "0009_step12_review_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791528809717,
+      "tag": "0010_step13_trainer_manager",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791530374375,
+      "tag": "0011_recruitment_enums",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791530512170,
+      "tag": "0012_recruitment_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791531112367,
+      "tag": "0013_recruitment_tighten_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791532112728,
+      "tag": "0014_recruitment_resume_admin_delete",
+      "breakpoints": true
+    }
+  ]
+}

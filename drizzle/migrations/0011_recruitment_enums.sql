@@ -1,0 +1,12 @@
+CREATE TYPE public.recruitment_stage AS ENUM ('sourced','contacted','interested','screened','shortlisted','interview_scheduled','interview_attended','selected','offered','offer_accepted','joined','rejected','not_interested','no_response','on_hold','dropout','absconded');
+CREATE TYPE public.requirement_status AS ENUM ('draft','open','on_hold','closed','cancelled');
+CREATE TYPE public.requirement_priority AS ENUM ('low','normal','high','urgent');
+CREATE TYPE public.interview_status AS ENUM ('scheduled','confirmed','completed','cancelled','rescheduled','no_show');
+CREATE TYPE public.recruitment_activity_type AS ENUM ('sourced','contacted','screening_completed','interview_scheduled','interview_outcome','shortlisted','rejected','offer_issued','offer_accepted','joined','on_hold','withdrawn','note');
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_requirement_created';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_requirement_updated';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_candidate_created';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_candidate_updated';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_stage_changed';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_activity_recorded';
+ALTER TYPE public.activity_action ADD VALUE IF NOT EXISTS 'recruitment_interview_saved';

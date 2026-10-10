@@ -1,0 +1,5 @@
+REVOKE ALL ON public.job_requirements, public.recruitment_candidates, public.recruitment_stage_history, public.recruitment_activities, public.recruitment_interviews, public.recruitment_interview_events FROM anon;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.job_requirements, public.recruitment_candidates, public.recruitment_stage_history, public.recruitment_activities, public.recruitment_interviews, public.recruitment_interview_events FROM authenticated;
+REVOKE ALL ON SEQUENCE public.job_requirement_code_seq, public.recruitment_candidate_code_seq FROM anon, authenticated;
+SELECT setval('public.job_requirement_code_seq', 1, false) WHERE NOT EXISTS (SELECT 1 FROM public.job_requirements);
+SELECT setval('public.recruitment_candidate_code_seq', 1, false) WHERE NOT EXISTS (SELECT 1 FROM public.recruitment_candidates);
