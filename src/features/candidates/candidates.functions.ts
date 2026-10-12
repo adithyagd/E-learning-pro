@@ -294,6 +294,47 @@ export const recordCandidateViewed = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteCandidate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<Result> => {
+    const admin = await requireAdmin(context);
+    if (data.userId === context.userId)
+      return { ok: false, error: "You cannot delete your own account." };
+    const { data: isCandidate } = await admin
+      .from("candidate_profiles")
+      .select("user_id")
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    if (!isCandidate) return { ok: false, error: "Candidate not found." };
+
+    // Safety: candidates with learning/assessment/certificate history cannot be
+    // deleted — disable the account instead so records are preserved.
+    const [lp, mp, at, cert] = await Promise.all([
+      admin.from("lesson_progress").select("id", { head: true, count: "exact" }).eq("candidate_id", data.userId),
+      admin.from("module_progress").select("id", { head: true, count: "exact" }).eq("candidate_id", data.userId),
+      admin.from("assessment_attempts").select("id", { head: true, count: "exact" }).eq("candidate_id", data.userId),
+      admin.from("certificates").select("id", { head: true, count: "exact" }).eq("candidate_id", data.userId),
+    ]);
+    if ((lp.count ?? 0) + (mp.count ?? 0) + (at.count ?? 0) + (cert.count ?? 0) > 0)
+      return {
+        ok: false,
+        error:
+          "This candidate has academy progress, assessment or certificate records and cannot be deleted. Disable the account instead.",
+      };
+
+    await audit(admin, context.userId, "candidate_updated", data.userId, { deleted: true });
+    // Remove app rows, then the auth account (profiles/user_roles cascade).
+    await admin.from("trainee_assignments").delete().eq("candidate_id", data.userId);
+    await admin.from("candidate_profiles").delete().eq("user_id", data.userId);
+    const { error } = await admin.auth.admin.deleteUser(data.userId);
+    if (error) {
+      console.error("candidate delete failed", error.message);
+      return { ok: false, error: "The candidate could not be deleted. Please try again." };
+    }
+    return { ok: true };
+  });
+
 /** Called after an invited user sets their password: activates their own invited account. */
 export const completeInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

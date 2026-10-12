@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
   Pencil,
   PauseCircle,
   RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ import { ActivityList } from "@/features/candidates/ActivityList";
 import { CandidateForm } from "@/features/candidates/CandidateForm";
 import { candidateQuery, formatDate } from "@/features/candidates/queries";
 import {
+  deleteCandidate,
   recordCandidateViewed,
   resendInvitation,
   setCandidateStatus,
@@ -159,7 +161,10 @@ function CandidateProfile() {
   const changeStatus = useServerFn(setCandidateStatus);
   const update = useServerFn(updateCandidate);
   const resend = useServerFn(resendInvitation);
+  const del = useServerFn(deleteCandidate);
+  const navigate = useNavigate();
   const [confirm, setConfirm] = useState<StatusAction | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const logged = useRef(false);
@@ -219,6 +224,26 @@ function CandidateProfile() {
     }
   }
 
+  async function runDelete() {
+    setBusy(true);
+    try {
+      const res = await del({ data: { userId: candidateId } });
+      if (res.ok) {
+        toast.success("Candidate deleted");
+        await qc.invalidateQueries({ queryKey: ["candidates"] });
+        navigate({ to: "/admin/candidates" });
+      } else {
+        toast.error(res.error);
+        setConfirmDelete(false);
+      }
+    } catch {
+      toast.error("The candidate could not be deleted. Please try again.");
+      setConfirmDelete(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const status = c.account_status ?? "invited";
 
   return (
@@ -257,6 +282,15 @@ function CandidateProfile() {
                 </Button>
               );
             })}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmDelete(true)}
+              disabled={busy}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="size-4" aria-hidden /> Delete
+            </Button>
           </div>
         }
       />
@@ -329,6 +363,18 @@ function CandidateProfile() {
           confirmLabel={ACTIONS[confirm].label}
           destructive={!!ACTIONS[confirm].destructive}
           onConfirm={() => void runStatus(confirm)}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmationDialog
+          open
+          onOpenChange={(o) => !o && setConfirmDelete(false)}
+          title="Permanently delete this candidate?"
+          description="This removes the account and sign-in access forever. Candidates with academy progress, assessment or certificate records cannot be deleted — disable the account instead. This cannot be undone."
+          confirmLabel="Delete permanently"
+          destructive
+          onConfirm={() => void runDelete()}
         />
       )}
 

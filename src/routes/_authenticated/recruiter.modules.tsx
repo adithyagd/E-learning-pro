@@ -1,10 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Award, ClipboardCheck } from "lucide-react";
 import { PageHeader } from "@/layouts/AppShell";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { ModuleCard, ModuleStateBadge } from "@/features/academy/components";
 import { finalAssessmentState, overviewQuery } from "@/features/academy/academy";
+import { finalOverviewQuery } from "@/features/assessments/assessments";
+import { myCertificateQuery } from "@/features/certificates/certificates";
+import { CertStatusBadge } from "./admin.certificates.index";
 
 export const Route = createFileRoute("/_authenticated/recruiter/modules")({
   head: () => ({
@@ -24,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/recruiter/modules")({
 function Modules() {
   const { session } = Route.useRouteContext();
   const q = useQuery(overviewQuery(session.userId));
+  const final = useQuery(finalOverviewQuery(session.userId));
+  const cert = useQuery(myCertificateQuery(session.userId));
   return (
     <>
       <PageHeader
@@ -57,9 +62,32 @@ function Modules() {
                   </p>
                 </div>
               </div>
-              <ModuleStateBadge
-                state={finalAssessmentState(q.data) === "available" ? "not_started" : "locked"}
-              />
+              <div className="flex flex-col items-end gap-1">
+                {final.data?.passed ? (
+                  <ModuleStateBadge state="completed" />
+                ) : (
+                  <ModuleStateBadge
+                    state={
+                      finalAssessmentState(q.data) !== "available"
+                        ? "locked"
+                        : final.data?.active_attempt_id || final.data?.attempts?.length
+                          ? "in_progress"
+                          : "not_started"
+                    }
+                  />
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {final.data?.passed ? "Passed" : null}
+                </span>
+                {finalAssessmentState(q.data) === "available" && (
+                  <Link
+                    to="/recruiter/final-assessment"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    View Final Assessment
+                  </Link>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between rounded-md border bg-card p-5">
               <div className="flex items-center gap-3">
@@ -71,7 +99,23 @@ function Modules() {
                   </p>
                 </div>
               </div>
-              <span className="text-xs font-medium text-muted-foreground">Not available</span>
+              <div className="flex flex-col items-end gap-1">
+                {cert.data ? (
+                  <CertStatusBadge status={cert.data.status} />
+                ) : (
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {cert.isPending ? "Loading…" : cert.isError ? "Unavailable" : "Not available"}
+                  </span>
+                )}
+                {cert.data && (
+                  <Link
+                    to="/recruiter/certificate"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    View Certificate
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </>

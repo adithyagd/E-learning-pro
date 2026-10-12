@@ -14,6 +14,8 @@ import {
   recentLearningQuery,
 } from "@/features/academy/academy";
 import { ACTIVITY_LABEL, formatDate } from "@/features/candidates/queries";
+import { CERT_STATUS_LABEL, myCertificateQuery } from "@/features/certificates/certificates";
+import { finalOverviewQuery } from "@/features/assessments/assessments";
 
 export const Route = createFileRoute("/_authenticated/recruiter/dashboard")({
   head: () => ({
@@ -31,6 +33,8 @@ function Dashboard() {
   const { session } = Route.useRouteContext();
   const q = useQuery(overviewQuery(session.userId));
   const recent = useQuery(recentLearningQuery(session.userId));
+  const cert = useQuery(myCertificateQuery(session.userId));
+  const final = useQuery(finalOverviewQuery(session.userId));
 
   if (q.isPending) return <LoadingState label="Loading your academy…" />;
   if (q.isError)
@@ -122,14 +126,38 @@ function Dashboard() {
         />
         <Stat
           label="Final assessment"
-          value={finalState === "available" ? "Available" : "Locked"}
+          value={
+            final.data?.passed
+              ? "Passed"
+              : finalState === "available"
+                ? final.data?.attempts?.length
+                  ? "Not yet passed"
+                  : "Available"
+                : "Locked"
+          }
           icon={<ClipboardCheck className="size-4" aria-hidden />}
         />
-        <Stat
-          label="Certificate"
-          value="Not available"
-          icon={<Award className="size-4" aria-hidden />}
-        />
+        <div className="rounded-md border bg-card p-4">
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Award className="size-4" aria-hidden />
+            Certificate
+          </p>
+          <p className="mt-1 text-lg font-semibold">
+            {cert.isPending
+              ? "Loading…"
+              : cert.isError
+                ? "Unavailable"
+                : cert.data
+                  ? CERT_STATUS_LABEL[cert.data.status]
+                  : "Not yet issued"}
+          </p>
+          <Link
+            to="/recruiter/certificate"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            View Certificate
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
