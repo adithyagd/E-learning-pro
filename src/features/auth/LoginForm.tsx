@@ -75,7 +75,41 @@ export function LoginForm(p: Props) {
         target.startsWith(res.redirectTo.split("/").slice(0, 2).join("/"));
       navigate({ to: ok ? target : res.redirectTo, replace: true });
     } catch {
-      setError("Unable to sign in right now. Please try again.");
+      // Local development fallback: the secure server sign-in needs cloud-only
+      // secrets, so on a local dev server sign in directly with email + password.
+      // Area layouts still enforce role and account status; data access is RLS.
+      if (import.meta.env.DEV && id.includes("@")) {
+        const { error: pwErr } = await supabase.auth.signInWithPassword({ email: id, password });
+        if (pwErr) {
+          setError("Invalid email or password.");
+          return;
+        }
+        const { data: u } = await supabase.auth.getUser();
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", u.user?.id ?? "");
+        const names = (roles ?? []).map((r) => r.role as string);
+        const area = names.includes("admin")
+          ? "/admin/"
+          : names.includes("manager")
+            ? "/manager/"
+            : names.includes("trainer")
+              ? "/trainer/"
+              : "/recruiter/";
+        if (!p.allowedRedirectPrefixes.includes(area)) {
+          await supabase.auth.signOut();
+          setError("This account cannot sign in on this portal.");
+          return;
+        }
+        navigate({ to: `${area}dashboard` as never, replace: true });
+        return;
+      }
+      setError(
+        import.meta.env.DEV
+          ? "Local sign-in: please use your email address instead of the Candidate ID."
+          : "Unable to sign in right now. Please try again.",
+      );
     } finally {
       setBusy(false);
     }
